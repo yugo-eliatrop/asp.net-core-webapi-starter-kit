@@ -17,10 +17,12 @@ namespace FindbookApi.Controllers
         };
 
         private readonly ILogger<WeatherForecastController> _logger;
+        private Context db;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, Context context)
         {
             _logger = logger;
+            db = context;
         }
 
         [HttpGet]
@@ -34,6 +36,13 @@ namespace FindbookApi.Controllers
                 Summary = Summaries[rng.Next(Summaries.Length)]
             })
             .ToArray();
+        }
+
+        [HttpGet("[action]")]
+        public ActionResult Count()
+        {
+            string count = db.Users.Count().ToString();
+            return Ok(new { count = count });
         }
     }
 }
