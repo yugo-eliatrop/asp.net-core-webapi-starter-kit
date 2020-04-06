@@ -5,12 +5,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using FindbookApi.Services;
+using FindbookApi.Models;
 
 namespace FindbookApi
 {
@@ -23,7 +26,6 @@ namespace FindbookApi
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
@@ -32,9 +34,14 @@ namespace FindbookApi
             string connection = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
             if (connection == null)
                 connection = Configuration.GetConnectionString("DevelopmentConnection");
-            // else
-            //     connection = "host=db;port:5432;database=findbook;username=postgres;password=postgres";
-            services.AddDbContext<Context>(options => options.UseNpgsql(connection));//.EnableSensitiveDataLogging());
+            services.AddDbContext<Context>(options => options.UseNpgsql(connection));
+
+            // services.AddIdentity<User, IdentityRole>(options => {
+            //     options.User.RequireUniqueEmail = true;
+            // })
+            //     .AddEntityFrameworkStores<Context>();
+
+            services.AddTransient<IAuthService, AuthService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
