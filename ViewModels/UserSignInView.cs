@@ -4,7 +4,7 @@ namespace FindbookApi.ViewModels
 {
     public class UserSignInView
     {
-        [StringLength(100, MinimumLength = 1, ErrorMessage = "Length must be between 1 and 100 characters")]
+        [StringLength(100, MinimumLength = 5, ErrorMessage = "Length must be between 1 and 100 characters")]
         [EmailAddress]
         public string Email { get; set; }
 
