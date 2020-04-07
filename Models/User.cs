@@ -8,7 +8,7 @@ namespace FindbookApi.Models
         public User() : base()
         { }
 
-        public User(UserView view) : base()
+        public User(UserSignUpView view) : base()
         { 
             Email = view.Email;
             UserName = view.UserName;

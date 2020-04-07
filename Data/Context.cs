@@ -17,7 +17,6 @@ namespace FindbookApi
             string connection = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
             if (connection == null)
                 connection = "Host=localhost;Database=findbook;Username=postgres;Password=postgres";
-            Console.WriteLine(connection);
             optionsBuilder.UseNpgsql(connection);
         }
     }

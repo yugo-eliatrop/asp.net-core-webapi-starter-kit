@@ -11,7 +11,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 using FindbookApi.Models;
 
 namespace FindbookApi
@@ -30,9 +32,8 @@ namespace FindbookApi
             services.AddControllers();
             
             // Add service to connect with database context
-            string connection = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
-            if (connection == null)
-                connection = Configuration.GetConnectionString("DevelopmentConnection");
+            string connection = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") ??
+                Configuration.GetConnectionString("DevelopmentConnection");
             services.AddDbContext<Context>(options => options.UseNpgsql(connection));
 
             services.AddIdentity<User, Role>(options => {
@@ -40,6 +41,27 @@ namespace FindbookApi
             })
                 .AddEntityFrameworkStores<Context>();
 
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options => {
+                    options.RequireHttpsMetadata = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = JwtOptions.ISSUER,
+                        ValidateAudience = true,
+                        ValidAudience = JwtOptions.AUDIENCE,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = JwtOptions.GetSymmetricSecurityKey()
+                    };
+                });
+            
+            
+            services.AddAuthorization(options => {
+                options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser()
+                    .Build();
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,15 +71,16 @@ namespace FindbookApi
             {
                 app.UseDeveloperExceptionPage();
             }
-            // else
-            // {
-            //     context.Database.Migrate();
-            // }
+            else
+            {
+                context.Database.Migrate();
+            }
 
             // app.UseHttpsRedirection();
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

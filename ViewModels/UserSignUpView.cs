@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FindbookApi.ViewModels
 {
-    public class UserView
+    public class UserSignUpView
     {
         [Required]
         [StringLength(100, MinimumLength = 1, ErrorMessage = "Length must be between 1 and 100 characters")]
