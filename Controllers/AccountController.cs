@@ -44,7 +44,11 @@ namespace FindbookApi.Controllers
             var user = await userManager.FindByEmailAsync(userView.Email);
             var result = await signInManager.CheckPasswordSignInAsync(user, userView.Password, false);
             if (result.Succeeded)
-                return Ok(new { token = GetToken(user) });
+                return Ok(new {
+                    token = GetToken(user),
+                    userName = user.UserName,
+                    email = user.Email
+                });
             return UnprocessableEntity(result);
         }
 
