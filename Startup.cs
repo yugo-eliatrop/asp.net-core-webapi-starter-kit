@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using FindbookApi.Models;
+using FindbookApi.Services;
 
 namespace FindbookApi
 {
@@ -71,6 +72,8 @@ namespace FindbookApi
                     Description = "FindBook project Api"
                 });
             });
+
+            services.AddTransient<IBooksService, BookService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using FindbookApi.Services;
+using FindbookApi.Models;
 
 namespace FindbookApi.Controllers
 {
@@ -14,11 +16,13 @@ namespace FindbookApi.Controllers
     {
         private readonly ILogger<BooksController> logger;
         private Context db;
+        private IBooksService booksService;
 
-        public BooksController(ILogger<BooksController> logger, Context context)
+        public BooksController(ILogger<BooksController> logger, Context context, IBooksService booksService)
         {
             this.logger = logger;
             db = context;
+            this.booksService = booksService;
         }
         
         [HttpGet("[action]")]
@@ -26,6 +30,13 @@ namespace FindbookApi.Controllers
         {
             int count = db.Books.Count();
             return Ok(new { count = count });
+        }
+
+        [Authorize]
+        [HttpPost("[action]")]
+        public ActionResult Create(Book book)
+        {
+            return Ok(booksService.Add(book));
         }
     }
 }
