@@ -1,17 +1,14 @@
 using System;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using FindbookApi.Models;
 
 namespace FindbookApi
 {
-    public class Context : DbContext
+    public class Context : IdentityDbContext<User, Role, int>
     {
-        public DbSet<User> Users { get; set; }
-
         public Context(DbContextOptions<Context> options) : base(options)
-        {
-            Database.EnsureCreated();
-        }
+        { }
 
         public Context() {}
          

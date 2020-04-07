@@ -12,7 +12,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using FindbookApi.Services;
 using FindbookApi.Models;
 
 namespace FindbookApi
@@ -36,12 +35,11 @@ namespace FindbookApi
                 connection = Configuration.GetConnectionString("DevelopmentConnection");
             services.AddDbContext<Context>(options => options.UseNpgsql(connection));
 
-            // services.AddIdentity<User, IdentityRole>(options => {
-            //     options.User.RequireUniqueEmail = true;
-            // })
-            //     .AddEntityFrameworkStores<Context>();
+            services.AddIdentity<User, Role>(options => {
+                options.User.RequireUniqueEmail = true;
+            })
+                .AddEntityFrameworkStores<Context>();
 
-            services.AddTransient<IAuthService, AuthService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,10 +49,10 @@ namespace FindbookApi
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
-            {
-                context.Database.Migrate();
-            }
+            // else
+            // {
+            //     context.Database.Migrate();
+            // }
 
             // app.UseHttpsRedirection();
 
