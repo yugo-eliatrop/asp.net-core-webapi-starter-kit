@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -41,6 +42,8 @@ namespace FindbookApi
             services.AddIdentity<User, Role>(options => {
                 options.User.RequireUniqueEmail = true;
             })
+                // .AddRoles<Role>()
+                // .AddRoleManager<RoleManager<Role>>()
                 .AddEntityFrameworkStores<Context>();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -54,7 +57,8 @@ namespace FindbookApi
                         ValidAudience = JwtOptions.AUDIENCE,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = JwtOptions.GetSymmetricSecurityKey()
+                        IssuerSigningKey = JwtOptions.GetSymmetricSecurityKey(),
+                        // RoleClaimType = ClaimsIdentity.DefaultRoleClaimType
                     };
                 });
             
@@ -62,6 +66,7 @@ namespace FindbookApi
             services.AddAuthorization(options => {
                 options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
                     .RequireAuthenticatedUser()
+                    // .RequireClaim(ClaimsIdentity.DefaultRoleClaimType)
                     .Build();
             });
 

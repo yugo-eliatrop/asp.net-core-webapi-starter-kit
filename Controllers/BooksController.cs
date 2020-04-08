@@ -25,6 +25,7 @@ namespace FindbookApi.Controllers
             this.booksService = booksService;
         }
         
+        [Authorize]
         [HttpGet("[action]")]
         public ActionResult Statistic()
         {

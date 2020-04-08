@@ -16,7 +16,7 @@ namespace FindbookApi.ViewModels
         public string UserName { get; set; }
 
         [Required]
-        [RegularExpression(@"Admin|Customer")]
+        [RegularExpression(@"admin|customer")]
         public string Role { get; set; }
     }
 }

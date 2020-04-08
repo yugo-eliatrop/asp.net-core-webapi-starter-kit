@@ -20,12 +20,15 @@ namespace FindbookApi.Controllers
         private readonly ILogger<AccountController> logger;
         private UserManager<User> userManager { get; }
         private SignInManager<User> signInManager { get; }
+        private RoleManager<Role> roleManager { get; }
 
-        public AccountController(ILogger<AccountController> logger, UserManager<User> userManager, SignInManager<User> signInManager)
+        public AccountController(ILogger<AccountController> logger, UserManager<User> userManager, SignInManager<User> signInManager,
+            RoleManager<Role> roleManager)
         {
             this.logger = logger;
             this.userManager = userManager;
             this.signInManager = signInManager;
+            this.roleManager = roleManager;
         }
 
         [HttpPost("[action]")]
@@ -34,7 +37,10 @@ namespace FindbookApi.Controllers
             var user = new User(userView);
             IdentityResult result = await userManager.CreateAsync(user, userView.Password);
             if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(user, userView.Role);
                 return Ok();
+            }
             return UnprocessableEntity(result);
         }
 
@@ -45,7 +51,7 @@ namespace FindbookApi.Controllers
             var result = await signInManager.CheckPasswordSignInAsync(user, userView.Password, false);
             if (result.Succeeded)
                 return Ok(new {
-                    token = GetToken(user),
+                    token = await GetToken(user),
                     userName = user.UserName,
                     email = user.Email
                 });
@@ -53,9 +59,9 @@ namespace FindbookApi.Controllers
         }
 
         [NonAction]
-        private string GetToken(User user)
+        private async Task<string> GetToken(User user)
         {
-            var identity = GetIdentity(user);
+            var identity = await GetIdentity(user);
             var now = DateTime.UtcNow;
             var jwt = new JwtSecurityToken(
                 issuer: JwtOptions.ISSUER,
@@ -69,12 +75,13 @@ namespace FindbookApi.Controllers
         }
 
         [NonAction]
-        private ClaimsIdentity GetIdentity(User user)
+        private async Task<ClaimsIdentity> GetIdentity(User user)
         {
+            IList<string> roles = await userManager.GetRolesAsync(user);
             var claims = new List<Claim>
             {
                 new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email),
-                new Claim(ClaimsIdentity.DefaultRoleClaimType, "admin")
+                new Claim(ClaimsIdentity.DefaultRoleClaimType, roles[0])
             };
             ClaimsIdentity claimsIdentity =
                 new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
