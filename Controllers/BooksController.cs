@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using FindbookApi.Services;
 using FindbookApi.Models;
+using FindbookApi.RequestModels;
 
 namespace FindbookApi.Controllers
 {
@@ -24,20 +25,46 @@ namespace FindbookApi.Controllers
             db = context;
             this.booksService = booksService;
         }
-        
-        [Authorize]
-        [HttpGet("[action]")]
-        public ActionResult Statistic()
+
+        [HttpGet]
+        public ActionResult Index(int page = 1, int booksPerPage = 20)
         {
-            int count = db.Books.Count();
-            return Ok(new { count = count });
+            BooksFilter filter = new BooksFilter(page, booksPerPage);
+            return Ok(new { books = booksService.All(filter) });
         }
 
         [Authorize(Roles = "admin")]
         [HttpPost("[action]")]
         public ActionResult Create(Book book)
         {
-            return Ok(booksService.Add(book));
+            Book createdBook = booksService.Add(book);
+            if (createdBook == null)
+                return UnprocessableEntity(new { error = "The book with same author and title already exists" });
+            return Ok();
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpPut("[action]")]
+        public ActionResult Update(Book book)
+        {   
+            Book editedBook = booksService.Edit(book);
+            return Ok(editedBook);
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpDelete("[action]")]
+        public ActionResult Delete(int id)
+        {
+            booksService.Delete(id);
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpGet("[action]")]
+        public ActionResult Statistic()
+        {
+            int count = db.Books.Count();
+            return Ok(new { count = count });
         }
     }
 }

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-using FindbookApi.ViewModels;
+using FindbookApi.RequestModels;
 
 namespace FindbookApi.Models
 {
@@ -8,10 +8,10 @@ namespace FindbookApi.Models
         public User() : base()
         { }
 
-        public User(UserSignUpView view) : base()
+        public User(UserSignUpModel model) : base()
         { 
-            Email = view.Email;
-            UserName = view.UserName;
+            Email = model.Email;
+            UserName = model.UserName;
         }
     }
 }

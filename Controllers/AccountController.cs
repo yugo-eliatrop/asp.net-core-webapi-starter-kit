@@ -7,9 +7,10 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using FindbookApi.Models;
-using FindbookApi.ViewModels;
+using FindbookApi.RequestModels;
 
 namespace FindbookApi.Controllers
 {
@@ -32,7 +33,7 @@ namespace FindbookApi.Controllers
         }
 
         [HttpPost("[action]")]
-        public async Task<ActionResult> SignUp(UserSignUpView userView)
+        public async Task<ActionResult> SignUp(UserSignUpModel userView)
         {
             var user = new User(userView);
             IdentityResult result = await userManager.CreateAsync(user, userView.Password);
@@ -45,17 +46,30 @@ namespace FindbookApi.Controllers
         }
 
         [HttpPost("[action]")]
-        public async Task<ActionResult> SignIn(UserSignInView userView)
+        public async Task<ActionResult> SignIn(UserSignInModel userView)
         {
             var user = await userManager.FindByEmailAsync(userView.Email);
             var result = await signInManager.CheckPasswordSignInAsync(user, userView.Password, false);
             if (result.Succeeded)
                 return Ok(new {
-                    token = await GetToken(user),
+                    id = user.Id,
                     userName = user.UserName,
-                    email = user.Email
+                    email = user.Email,
+                    token = await GetToken(user),
+                    roles = await (userManager.GetRolesAsync(user))
                 });
-            return UnprocessableEntity(result);
+            return UnprocessableEntity(new { error = "Wrong email or password" });
+        }
+
+        [Authorize]
+        [HttpPost("[action]")]
+        public async Task<ActionResult> ChangePassword(UserChangePassModel userView)
+        {
+            User user = await userManager.FindByEmailAsync(User.Identity.Name);
+            var result = await userManager.ChangePasswordAsync(user, userView.OldPassword, userView.NewPassword);
+            if (result.Succeeded)
+                return Ok();
+            return UnprocessableEntity(new { error = "Wrong password" });
         }
 
         [NonAction]
