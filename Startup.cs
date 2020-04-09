@@ -39,11 +39,12 @@ namespace FindbookApi
                 Configuration.GetConnectionString("DevelopmentConnection");
             services.AddDbContext<Context>(options => options.UseNpgsql(connection));
 
-            services.AddIdentity<User, Role>(options => {
+            services.AddIdentityCore<User>(options => {
                 options.User.RequireUniqueEmail = true;
             })
-                // .AddRoles<Role>()
-                // .AddRoleManager<RoleManager<Role>>()
+                .AddSignInManager<SignInManager<User>>()
+                .AddRoles<Role>()
+                .AddRoleManager<RoleManager<Role>>()
                 .AddEntityFrameworkStores<Context>();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -58,7 +59,7 @@ namespace FindbookApi
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = JwtOptions.GetSymmetricSecurityKey(),
-                        // RoleClaimType = ClaimsIdentity.DefaultRoleClaimType
+                        RoleClaimType = ClaimsIdentity.DefaultRoleClaimType
                     };
                 });
             
@@ -66,7 +67,7 @@ namespace FindbookApi
             services.AddAuthorization(options => {
                 options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
                     .RequireAuthenticatedUser()
-                    // .RequireClaim(ClaimsIdentity.DefaultRoleClaimType)
+                    .RequireRole("admin", "customer")
                     .Build();
             });
 

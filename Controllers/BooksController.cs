@@ -33,7 +33,7 @@ namespace FindbookApi.Controllers
             return Ok(new { count = count });
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPost("[action]")]
         public ActionResult Create(Book book)
         {
