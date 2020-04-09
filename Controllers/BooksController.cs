@@ -16,13 +16,11 @@ namespace FindbookApi.Controllers
     public class BooksController : ControllerBase
     {
         private readonly ILogger<BooksController> logger;
-        private Context db;
         private IBooksService booksService;
 
-        public BooksController(ILogger<BooksController> logger, Context context, IBooksService booksService)
+        public BooksController(ILogger<BooksController> logger, IBooksService booksService)
         {
             this.logger = logger;
-            db = context;
             this.booksService = booksService;
         }
 
@@ -35,35 +33,24 @@ namespace FindbookApi.Controllers
 
         [Authorize(Roles = "admin")]
         [HttpPost("[action]")]
-        public ActionResult Create(Book book)
-        {
-            Book createdBook = booksService.Add(book);
-            if (createdBook == null)
-                return UnprocessableEntity(new { error = "The book with same author and title already exists" });
-            return Ok();
-        }
+        public ActionResult Create(Book book) => Ok(booksService.Add(book));
 
         [Authorize(Roles = "admin")]
         [HttpPut("[action]")]
-        public ActionResult Update(Book book)
-        {   
-            Book editedBook = booksService.Edit(book);
-            return Ok(editedBook);
-        }
+        public ActionResult Update(Book book) => Ok(booksService.Edit(book));
 
         [Authorize(Roles = "admin")]
-        [HttpDelete("[action]")]
+        [HttpDelete("[action]/{id}")]
         public ActionResult Delete(int id)
         {
             booksService.Delete(id);
             return Ok();
         }
 
-        [Authorize]
         [HttpGet("[action]")]
         public ActionResult Statistic()
         {
-            int count = db.Books.Count();
+            int count = booksService.Count();
             return Ok(new { count = count });
         }
     }

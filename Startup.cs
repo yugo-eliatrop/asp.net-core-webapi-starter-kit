@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Net;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +20,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using FindbookApi.Models;
 using FindbookApi.Services;
+using FindbookApi.MiddlewareExtensions;
 
 namespace FindbookApi
 {
@@ -85,16 +88,13 @@ namespace FindbookApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Context context)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
+            if (env.IsProduction())
             {
                 context.Database.Migrate();
             }
 
-            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseExceptionMiddleware();
+
             app.UseSwagger();
 
             app.UseSwaggerUI(c =>

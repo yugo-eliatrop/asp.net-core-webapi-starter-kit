@@ -9,5 +9,6 @@ namespace FindbookApi.Services
         Book Add(Book book);
         Book Edit(Book book);
         void Delete(int id);
+        int Count();
     }
 }

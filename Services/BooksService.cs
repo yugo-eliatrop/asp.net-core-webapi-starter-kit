@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using FindbookApi.Models;
+using FindbookApi.AppExceptions;
 
 namespace FindbookApi.Services
 {
@@ -24,10 +25,9 @@ namespace FindbookApi.Services
 
         public Book Add(Book book)
         {
-            if (book.Id > 0)
-                book.Id = 0;
+            book.Id = 0;
             if (IsDuplicate(book))
-                return null;
+                throw new RequestArgumentException("The book with same author and title already exists", 422);
             db.Books.Add(book);
             db.SaveChanges();
             return book;
@@ -36,7 +36,7 @@ namespace FindbookApi.Services
         public Book Edit(Book book)
         {
             if (db.Books.Find(book.Id) == null)
-                throw new System.ArgumentException("ads");
+                throw new RequestArgumentException("The book doesn't exist", 404);
             db.Books.Update(book);
             db.SaveChanges();
             return book;
@@ -45,11 +45,15 @@ namespace FindbookApi.Services
         public void Delete(int id)
         {
             Book book = db.Books.Find(id);
-            if (book != null)
-            {
-                db.Books.Remove(book);
-                db.SaveChanges();
-            }
+            if (book == null)
+                throw new RequestArgumentException("The book doesn't exist", 404);
+            db.Books.Remove(book);
+            db.SaveChanges();
+        }
+
+        public int Count()
+        {
+            return db.Books.Count();
         }
 
         private bool IsDuplicate(Book book) =>
