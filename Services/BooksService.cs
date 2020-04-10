@@ -25,7 +25,6 @@ namespace FindbookApi.Services
 
         public Book Add(Book book)
         {
-            book.Id = 0;
             if (IsDuplicate(book))
                 throw new RequestArgumentException("The book with same author and title already exists", 422);
             db.Books.Add(book);
@@ -33,10 +32,17 @@ namespace FindbookApi.Services
             return book;
         }
 
-        public Book Edit(Book book)
+        public Book Find(int id)
         {
-            if (db.Books.Find(book.Id) == null)
-                throw new RequestArgumentException("The book doesn't exist", 404);
+            return db.Books.Find(id);
+        }
+
+        public Book Update(Book book)
+        {
+            // if (db.Books.Find(book.Id) == null)
+            //     throw new RequestArgumentException("The book doesn't exist", 404);
+            if (IsDuplicate(book))
+                throw new RequestArgumentException("The book with same author and title already exists", 422);
             db.Books.Update(book);
             db.SaveChanges();
             return book;
@@ -57,6 +63,6 @@ namespace FindbookApi.Services
         }
 
         private bool IsDuplicate(Book book) =>
-            db.Books.Any(b => b.Title == book.Title && b.Author == book.Author);
+            db.Books.Any(b => b.Title == book.Title && b.Author == book.Author && b.Id != book.Id);
     }
 }

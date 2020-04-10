@@ -31,16 +31,36 @@ namespace FindbookApi.Controllers
             return Ok(new { books = booksService.All(filter) });
         }
 
-        [Authorize(Roles = "admin")]
-        [HttpPost("[action]")]
-        public ActionResult Create(Book book) => Ok(booksService.Add(book));
+        [HttpGet("{id}")]
+        public ActionResult Show(int id)
+        {
+            Book book = booksService.Find(id);
+            if (book == null)
+                return NotFound();
+            return Ok(book);
+        }
 
         [Authorize(Roles = "admin")]
-        [HttpPut("[action]")]
-        public ActionResult Update(Book book) => Ok(booksService.Edit(book));
+        [HttpPost]
+        public ActionResult Create(BookEditModel model)
+        {
+            Book book = new Book(model);
+            return Ok(booksService.Add(book));
+        }
 
         [Authorize(Roles = "admin")]
-        [HttpDelete("[action]/{id}")]
+        [HttpPut("{id}")]
+        public ActionResult Update(int id, [FromBody] BookEditModel model)
+        {
+            Book book = booksService.Find(id);
+            if (book == null)
+                return NotFound();
+            book.Update(model);
+            return Ok(booksService.Update(book));
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpDelete("{id}")]
         public ActionResult Delete(int id)
         {
             booksService.Delete(id);
