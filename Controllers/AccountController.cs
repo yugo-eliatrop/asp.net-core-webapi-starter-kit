@@ -32,6 +32,11 @@ namespace FindbookApi.Controllers
             this.roleManager = roleManager;
         }
 
+        /// <summary>
+        /// Create new user
+        /// </summary>
+        /// <response code="200">The user created successfully</response>
+        /// <response code="422">The user model is not valid</response>
         [HttpPost("[action]")]
         public async Task<ActionResult> SignUp(UserSignUpModel userView)
         {
@@ -45,22 +50,46 @@ namespace FindbookApi.Controllers
             return UnprocessableEntity(result);
         }
 
+        /// <summary>
+        /// Create a new session, get user info &amp; JWT-token
+        /// </summary>
+        /// <remarks>
+        /// The method works both with email and with username.
+        /// You can use email or username
+        /// </remarks>
+        /// <param name="userView"></param>
+        /// <response code="200">Returns user info and JWT-token</response>
+        /// <response code="422">Invalid email address or password</response>
         [HttpPost("[action]")]
         public async Task<ActionResult> SignIn(UserSignInModel userView)
         {
-            var user = await userManager.FindByEmailAsync(userView.Email);
-            var result = await signInManager.CheckPasswordSignInAsync(user, userView.Password, false);
-            if (result.Succeeded)
-                return Ok(new {
-                    id = user.Id,
-                    userName = user.UserName,
-                    email = user.Email,
-                    token = await GetToken(user),
-                    roles = await (userManager.GetRolesAsync(user))
-                });
+            User user;
+            if (userView.Email != null)
+                user = await userManager.FindByEmailAsync(userView.Email);
+            else
+                user = await userManager.FindByNameAsync(userView.UserName);
+            if (user != null)
+            {
+                var result = await signInManager.CheckPasswordSignInAsync(user, userView.Password, false);
+                if (result.Succeeded)
+                    return Ok(new {
+                        id = user.Id,
+                        userName = user.UserName,   
+                        email = user.Email,
+                        token = await GetToken(user),
+                        roles = await (userManager.GetRolesAsync(user))
+                    });
+            }
             return UnprocessableEntity(new { error = "Wrong email or password" });
         }
 
+        /// <summary>
+        /// Change password
+        /// </summary>
+        /// <param name="userView"></param>
+        /// <response code="200">Ok</response>
+        /// <response code="401">The user is not signed in</response>
+        /// <response code="422">Invalid password</response>
         [Authorize]
         [HttpPost("[action]")]
         public async Task<ActionResult> ChangePassword(UserChangePassModel userView)
