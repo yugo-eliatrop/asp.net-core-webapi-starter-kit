@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
@@ -77,7 +76,7 @@ namespace FindbookApi.Controllers
                         userName = user.UserName,   
                         email = user.Email,
                         token = await GetToken(user),
-                        roles = await (userManager.GetRolesAsync(user))
+                        roles = await userManager.GetRolesAsync(user)
                     });
             }
             return UnprocessableEntity(new { error = "Wrong email or password" });

@@ -39,6 +39,7 @@ namespace FindbookApi.Controllers
         /// Get book info
         /// </summary>
         /// <response code="200">Returns a book info</response>
+        /// <response code="404">Book is not found</response>
         [HttpGet("{id}")]
         public ActionResult Show(int id)
         {
@@ -69,7 +70,7 @@ namespace FindbookApi.Controllers
         /// <response code="200">Returns the updated book</response>
         /// <response code="401">The user is not signed in</response>
         /// <response code="403">The user does not have rights</response>
-        /// <response code="404">Book is not found</response>
+        /// <response code="404">Book not found</response>
         /// <response code="422">The item is not valid</response>
         [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
