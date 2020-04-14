@@ -8,6 +8,7 @@ namespace FindbookApi
     public class Context : IdentityDbContext<User, Role, int>
     {
         public DbSet<Book> Books { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         public Context(DbContextOptions<Context> options) : base(options)
         { }

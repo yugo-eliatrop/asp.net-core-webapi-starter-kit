@@ -38,6 +38,10 @@ namespace FindbookApi.MiddlewareExtensions
                 return context.Response.WriteAsync($"{{\"error\":\"{ex.Message}\"}}");
             }
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            Console.WriteLine("Internal Server Error");
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.Source);
+            Console.WriteLine(ex.StackTrace);
             return context.Response.WriteAsync($"{{\"error\":\"internal server error\"}}");
         }
     }

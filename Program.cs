@@ -19,7 +19,7 @@ namespace FindbookApi
         {
             var host = CreateHostBuilder(args).Build();
             
-            if (args.Any(x => x == "seeds"))
+            if (args.Any(x => x == "--seeds"))
                 using (var scope = host.Services.CreateScope())
                 {
                     var services = scope.ServiceProvider;

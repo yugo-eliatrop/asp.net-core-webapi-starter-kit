@@ -86,6 +86,7 @@ namespace FindbookApi
             });
 
             services.AddTransient<IBooksService, BookService>();
+            services.AddTransient<ITokensService, TokensService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
