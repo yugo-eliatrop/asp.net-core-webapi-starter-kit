@@ -1,10 +1,11 @@
-using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using FindbookApi.Models;
 using FindbookApi.RequestModels;
 using FindbookApi.Services;
@@ -56,16 +57,15 @@ namespace FindbookApi.Controllers
         /// </remarks>
         /// <param name="userView"></param>
         /// <response code="200">Returns user info and JWT-token</response>
-        /// <response code="401">The account locked out</response>
+        /// <response code="401">The account locked out. Returns reason of lock</response>
         /// <response code="422">Invalid email address or password</response>
         [HttpPost("[action]")]
         public async Task<ActionResult> SignIn(UserSignInModel userView)
         {
-            User user;
-            if (userView.Email != null)
-                user = await userManager.FindByEmailAsync(userView.Email);
-            else
-                user = await userManager.FindByNameAsync(userView.UserName);
+            User user = await userManager.Users
+                .Include(u => u.LockRecord)
+                .Where(u => u.Email == userView.Email || u.UserName == userView.UserName)
+                .FirstOrDefaultAsync();
             if (user != null)
             {
                 var result = await signInManager.CheckPasswordSignInAsync(user, userView.Password, true);
@@ -82,8 +82,10 @@ namespace FindbookApi.Controllers
                     });
                 }
                 else if (result.IsLockedOut)
-                    return Unauthorized(new { error = "The account locked out" });
-                    
+                {
+                    string reason = user.LockRecord?.Reason ?? "Account was blocked after several failed login attempts";
+                    return Unauthorized(new { error = $"Account blocked: {reason}" });
+                } 
             }
             return UnprocessableEntity(new { error = "Wrong email or password" });
         }

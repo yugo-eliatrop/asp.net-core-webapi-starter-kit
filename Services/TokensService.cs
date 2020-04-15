@@ -84,6 +84,8 @@ namespace FindbookApi.Services
             User user = await userManager.FindByEmailAsync(email);
             if (user == null)
                 throw new RequestArgumentException("Jwt token is invalid", 400);
+            if (user.LockoutEnd > DateTime.UtcNow)
+                throw new RequestArgumentException("The user locked out", 400);
             IList<string> roles = await userManager.GetRolesAsync(user);
             Tokens newTokens = new Tokens();
             newTokens.AccessToken = GetAccessToken(user, roles);

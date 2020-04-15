@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using FindbookApi.Models;
 using FindbookApi.Services;
@@ -79,7 +80,7 @@ namespace FindbookApi.Controllers
         [HttpPost("[action]")]
         public async Task<ActionResult> LockOut(LockOutRequest request)
         {
-            User user = await userManager.FindByIdAsync(request.Id.ToString());
+            User user = db.Users.Include(u => u.LockRecord).Where(u => u.Id == request.Id).FirstOrDefault();
             if (user == null)
                 return NotFound();
             if (user.LockoutEnd > DateTime.UtcNow)
@@ -87,9 +88,21 @@ namespace FindbookApi.Controllers
             IList<string> roles = await userManager.GetRolesAsync(user);
             if (roles.Any(r => r == "admin"))
                 return Forbid();
+            int adminId = (await userManager.FindByEmailAsync(User.Identity.Name)).Id;
             user.LockoutEnd = DateTime.UtcNow.Add(TimeSpan.FromMinutes(request.Minutes));
+            user.LockRecord = UpdateLockRecord(user.LockRecord, new LockRecord(request.Reason, adminId));
             db.SaveChanges();
             return Ok(new { lockoutEnd = user.LockoutEnd });
+        }
+
+        [NonAction]
+        private LockRecord UpdateLockRecord(LockRecord origRecord, LockRecord newRecord)
+        {
+            if (origRecord == null)
+                return newRecord;
+            origRecord.Reason = newRecord.Reason;
+            origRecord.AdminId = newRecord.AdminId;
+            return origRecord;
         }
     }
 }
