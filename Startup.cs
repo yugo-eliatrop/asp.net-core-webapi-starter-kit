@@ -20,7 +20,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using FindbookApi.Models;
 using FindbookApi.Services;
-using FindbookApi.MiddlewareExtensions;
+using FindbookApi.Extensions;
 
 namespace FindbookApi
 {
@@ -48,6 +48,7 @@ namespace FindbookApi
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
             })
                 .AddSignInManager<SignInManager<User>>()
+                .AddUserManager<UserManager<User>>()
                 .AddRoles<Role>()
                 .AddRoleManager<RoleManager<Role>>()
                 .AddEntityFrameworkStores<Context>();
@@ -89,6 +90,7 @@ namespace FindbookApi
 
             services.AddTransient<IBooksService, BookService>();
             services.AddTransient<ITokensService, TokensService>();
+            services.AddTransient<ILockService, LockService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

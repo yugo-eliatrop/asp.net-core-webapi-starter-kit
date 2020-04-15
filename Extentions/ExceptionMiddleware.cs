@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using FindbookApi.AppExceptions;
 
-namespace FindbookApi.MiddlewareExtensions
+namespace FindbookApi.Extensions
 {
     public class ExceptionMiddleware
     {
@@ -46,7 +46,7 @@ namespace FindbookApi.MiddlewareExtensions
         }
     }
 
-    public static class MiddlewareExtensions
+    public static class Extensions
     {
         public static IApplicationBuilder UseExceptionMiddleware(this IApplicationBuilder app) =>
             app.UseMiddleware<ExceptionMiddleware>();

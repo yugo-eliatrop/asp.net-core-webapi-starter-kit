@@ -2,14 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using FindbookApi.Models;
 using FindbookApi.Services;
 using FindbookApi.RequestModels;
@@ -23,13 +20,13 @@ namespace FindbookApi.Controllers
     {
         private readonly ILogger<AccountController> logger;
         private readonly UserManager<User> userManager;
-        private readonly Context db;
+        private readonly ILockService lockService;
 
-        public CustomersController(ILogger<AccountController> logger, UserManager<User> userManager, Context context)
+        public CustomersController(ILogger<AccountController> logger, UserManager<User> userManager, ILockService lockService)
         {
             this.logger = logger;
             this.userManager = userManager;
-            db = context;
+            this.lockService = lockService;
         }
 
         /// <summary>
@@ -80,29 +77,12 @@ namespace FindbookApi.Controllers
         [HttpPost("[action]")]
         public async Task<ActionResult> LockOut(LockOutRequest request)
         {
-            User user = db.Users.Include(u => u.LockRecord).Where(u => u.Id == request.Id).FirstOrDefault();
-            if (user == null)
-                return NotFound();
-            if (user.LockoutEnd > DateTime.UtcNow)
-                return BadRequest(new { error = "The user already locked out" });
-            IList<string> roles = await userManager.GetRolesAsync(user);
+            User user = await userManager.Users.Include(u => u.LockRecord).Where(u => u.Id == request.Id).FirstOrDefaultAsync();
+            IList<string> roles = await userManager.GetRolesAsync(await userManager.FindByIdAsync(request.Id.ToString()));
             if (roles.Any(r => r == "admin"))
                 return Forbid();
             int adminId = (await userManager.FindByEmailAsync(User.Identity.Name)).Id;
-            user.LockoutEnd = DateTime.UtcNow.Add(TimeSpan.FromMinutes(request.Minutes));
-            user.LockRecord = UpdateLockRecord(user.LockRecord, new LockRecord(request.Reason, adminId));
-            db.SaveChanges();
-            return Ok(new { lockoutEnd = user.LockoutEnd });
-        }
-
-        [NonAction]
-        private LockRecord UpdateLockRecord(LockRecord origRecord, LockRecord newRecord)
-        {
-            if (origRecord == null)
-                return newRecord;
-            origRecord.Reason = newRecord.Reason;
-            origRecord.AdminId = newRecord.AdminId;
-            return origRecord;
+            return Ok(new { lockoutEnd = await lockService.LockOut(user, request.Reason, request.Minutes, adminId) });
         }
     }
 }
