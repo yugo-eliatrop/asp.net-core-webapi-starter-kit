@@ -44,6 +44,8 @@ namespace FindbookApi
 
             services.AddIdentityCore<User>(options => {
                 options.User.RequireUniqueEmail = true;
+                options.Lockout.AllowedForNewUsers = true;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
             })
                 .AddSignInManager<SignInManager<User>>()
                 .AddRoles<Role>()

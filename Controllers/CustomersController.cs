@@ -22,11 +22,13 @@ namespace FindbookApi.Controllers
     {
         private readonly ILogger<AccountController> logger;
         private readonly UserManager<User> userManager;
+        private readonly Context db;
 
-        public CustomersController(ILogger<AccountController> logger, UserManager<User> userManager)
+        public CustomersController(ILogger<AccountController> logger, UserManager<User> userManager, Context context)
         {
             this.logger = logger;
             this.userManager = userManager;
+            db = context;
         }
 
         /// <summary>
@@ -65,6 +67,29 @@ namespace FindbookApi.Controllers
             if (!roles.Any(r => r == "customer"))
                 return NotFound();
             return Ok(new UserInfoModel(user, roles));
+        }
+
+        /// <summary>
+        /// Lock out customer
+        /// </summary>
+        /// <response code="200">Returns lock info</response>
+        /// <response code="400">The customer already locked out</response>
+        /// <response code="403">The user does not have rights</response>
+        /// <response code="404">Customer not found</response>
+        [HttpPost("[action]")]
+        public async Task<ActionResult> LockOut(LockOutRequest request)
+        {
+            User user = await userManager.FindByIdAsync(request.Id.ToString());
+            if (user == null)
+                return NotFound();
+            if (user.LockoutEnd > DateTime.UtcNow)
+                return BadRequest(new { error = "The user already locked out" });
+            IList<string> roles = await userManager.GetRolesAsync(user);
+            if (roles.Any(r => r == "admin"))
+                return Forbid();
+            user.LockoutEnd = DateTime.UtcNow.Add(TimeSpan.FromMinutes(request.Minutes));
+            db.SaveChanges();
+            return Ok(new { lockoutEnd = user.LockoutEnd });
         }
     }
 }

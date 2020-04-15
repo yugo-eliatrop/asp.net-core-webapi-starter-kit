@@ -56,6 +56,7 @@ namespace FindbookApi.Controllers
         /// </remarks>
         /// <param name="userView"></param>
         /// <response code="200">Returns user info and JWT-token</response>
+        /// <response code="401">The account locked out</response>
         /// <response code="422">Invalid email address or password</response>
         [HttpPost("[action]")]
         public async Task<ActionResult> SignIn(UserSignInModel userView)
@@ -67,7 +68,7 @@ namespace FindbookApi.Controllers
                 user = await userManager.FindByNameAsync(userView.UserName);
             if (user != null)
             {
-                var result = await signInManager.CheckPasswordSignInAsync(user, userView.Password, false);
+                var result = await signInManager.CheckPasswordSignInAsync(user, userView.Password, true);
                 if (result.Succeeded)
                 {
                     IList<string> roles = await userManager.GetRolesAsync(user);
@@ -80,6 +81,9 @@ namespace FindbookApi.Controllers
                         roles = roles
                     });
                 }
+                else if (result.IsLockedOut)
+                    return Unauthorized(new { error = "The account locked out" });
+                    
             }
             return UnprocessableEntity(new { error = "Wrong email or password" });
         }
