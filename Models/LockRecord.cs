@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace FindbookApi.Models
@@ -14,16 +15,19 @@ namespace FindbookApi.Models
         [Required]
         public int AdminId { get; set; }
 
+        public DateTime LockoutEnd { get; set; }
+
         public int UserId { get; set; }
         public User User { get; set; }
 
         public LockRecord()
         { }
 
-        public LockRecord(string reason, int adminId)
+        public LockRecord(string reason, int adminId, DateTime lockoutEnd)
         {
             Reason = reason;
             AdminId = adminId;
+            LockoutEnd = lockoutEnd;
         }
     }
 }

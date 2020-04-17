@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -31,8 +32,8 @@ namespace FindbookApi.Controllers
         [HttpGet]
         public ActionResult Index(int page = 1, int booksPerPage = 20)
         {
-            BooksFilter filter = new BooksFilter(page, booksPerPage);
-            return Ok(new { books = booksService.All(filter) });
+            BaseFilter<Book> filter = new BaseFilter<Book>(page, booksPerPage);
+            return Ok(new { books = booksService.FindAll(filter) });
         }
 
         /// <summary>
@@ -60,8 +61,7 @@ namespace FindbookApi.Controllers
         [HttpPost]
         public ActionResult Create(BookEditModel model)
         {
-            Book book = new Book(model);
-            return Ok(booksService.Add(book));
+            return Ok(booksService.Add(new Book(model)));
         }
 
         /// <summary>
@@ -92,9 +92,9 @@ namespace FindbookApi.Controllers
         /// <response code="404">Book is not found</response>
         [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
-        public ActionResult Delete(int id)
+        public ActionResult Remove(int id)
         {
-            booksService.Delete(id);
+            booksService.Remove(id);
             return Ok();
         }
 

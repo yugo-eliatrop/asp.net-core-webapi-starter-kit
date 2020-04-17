@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using FindbookApi.Models;
 using FindbookApi.AppExceptions;
 
@@ -7,62 +9,54 @@ namespace FindbookApi.Services
 {
     public class BookService : IBooksService
     {
-        private Context db;
+        private Context dbContext;
 
         public BookService(Context context)
         {
-            db = context;
+            dbContext = context;
         }
 
-        public List<Book> All(BooksFilter filter)
-        {
-            return db.Books
-                .OrderBy(x => x.Id)
+        public IEnumerable<Book> FindAll() => dbContext.Books.ToList();
+
+        public IEnumerable<Book> FindAll(BaseFilter<Book> filter) =>
+            dbContext.Books
+                .Where(filter.Predicate)
                 .Skip(filter.Skip)
                 .Take(filter.Take)
                 .ToList();
-        }
+
+        public Book Find(int id) => dbContext.Books.Find(id);
 
         public Book Add(Book book)
         {
             if (IsDuplicate(book))
                 throw new RequestArgumentException("The book with same author and title already exists", 422);
-            db.Books.Add(book);
-            db.SaveChanges();
+            dbContext.Books.Add(book);
+            dbContext.SaveChanges();
             return book;
-        }
-
-        public Book Find(int id)
-        {
-            return db.Books.Find(id);
         }
 
         public Book Update(Book book)
         {
-            // if (db.Books.Find(book.Id) == null)
-            //     throw new RequestArgumentException("The book doesn't exist", 404);
             if (IsDuplicate(book))
                 throw new RequestArgumentException("The book with same author and title already exists", 422);
-            db.Books.Update(book);
-            db.SaveChanges();
+            dbContext.Books.Update(book);
+            dbContext.SaveChanges();
             return book;
         }
 
-        public void Delete(int id)
+        public void Remove(int id)
         {
-            Book book = db.Books.Find(id);
+            Book book = dbContext.Books.Find(id);
             if (book == null)
                 throw new RequestArgumentException("The book doesn't exist", 404);
-            db.Books.Remove(book);
-            db.SaveChanges();
+            dbContext.Books.Remove(book);
+            dbContext.SaveChanges();
         }
 
-        public int Count()
-        {
-            return db.Books.Count();
-        }
+        public int Count() => dbContext.Books.Count();
 
         private bool IsDuplicate(Book book) =>
-            db.Books.Any(b => b.Title == book.Title && b.Author == book.Author && b.Id != book.Id);
+            dbContext.Books.Any(b => b.Title == book.Title && b.Author == book.Author && b.Id != book.Id);
     }
 }

@@ -24,11 +24,11 @@ namespace FindbookApi.Services
         {
             if (user == null)
                 throw new RequestArgumentException("User not found", 404);
-            if (user.LockoutEnd > DateTime.UtcNow)
+            if (user.LockoutEnd > DateTime.UtcNow && user.IsLockedByAdmin)
                 throw new RequestArgumentException("The user already locked out", 400);
             DateTime end = DateTime.UtcNow.Add(TimeSpan.FromMinutes(minutes));
             user.LockoutEnd = end;
-            user.LockRecord = UpdateLockRecord(user.LockRecord, new LockRecord(reason, adminId));
+            user.LockRecord = UpdateLockRecord(user.LockRecord, new LockRecord(reason, adminId, end));
             await db.SaveChangesAsync();
             return end;
         }
@@ -39,6 +39,7 @@ namespace FindbookApi.Services
                 return newRecord;
             origRecord.Reason = newRecord.Reason;
             origRecord.AdminId = newRecord.AdminId;
+            origRecord.LockoutEnd = newRecord.LockoutEnd;
             return origRecord;
         }
     }

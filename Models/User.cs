@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
+using System;
 using Microsoft.AspNetCore.Identity;
 using FindbookApi.RequestModels;
 
@@ -19,6 +19,21 @@ namespace FindbookApi.Models
         { 
             Email = model.Email;
             UserName = model.UserName;
+        }
+
+        public string ReasonOfLockOut
+        {
+            get
+            {
+                if (IsLockedByAdmin)
+                    return LockRecord.Reason;
+                return "Account was blocked after several failed login attempts";
+            }
+        }
+
+        public bool IsLockedByAdmin
+        {
+            get => LockRecord != null && LockRecord.LockoutEnd.CompareTo(LockoutEnd.Value.DateTime.ToUniversalTime()) == 0;
         }
     }
 }

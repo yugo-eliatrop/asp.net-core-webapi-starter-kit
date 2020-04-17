@@ -38,7 +38,7 @@ namespace FindbookApi.Controllers
         [HttpGet]
         public async Task<ActionResult> Index(int page = 1, int usersPerPage = 20)
         {
-            BaseFilter filter = new BaseFilter(page, usersPerPage);
+            BaseFilter<User> filter = new BaseFilter<User>(page, usersPerPage);
             IList<string> roles = new List<string>() { "customer" };
             var list = (await userManager.GetUsersInRoleAsync("customer"))
                 .Skip(filter.Skip)

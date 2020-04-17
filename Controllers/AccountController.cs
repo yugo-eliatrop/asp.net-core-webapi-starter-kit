@@ -82,10 +82,7 @@ namespace FindbookApi.Controllers
                     });
                 }
                 else if (result.IsLockedOut)
-                {
-                    string reason = user.LockRecord?.Reason ?? "Account was blocked after several failed login attempts";
-                    return Unauthorized(new { error = $"Account blocked: {reason}" });
-                } 
+                    return Unauthorized(new { error = $"Account blocked: {user.ReasonOfLockOut}" });
             }
             return UnprocessableEntity(new { error = "Wrong email or password" });
         }
