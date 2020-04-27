@@ -30,10 +30,10 @@ namespace FindbookApi.Controllers
         /// </summary>
         /// <response code="200">Returns list of books</response>
         [HttpGet]
-        public ActionResult Index(int page = 1, int booksPerPage = 20)
+        public async Task<ActionResult> Index(int page = 1, int booksPerPage = 20)
         {
             BaseFilter<Book> filter = new BaseFilter<Book>(page, booksPerPage);
-            return Ok(new { books = booksService.FindAll(filter) });
+            return Ok(new { books = await booksService.FindAll(filter) });
         }
 
         /// <summary>
@@ -42,9 +42,9 @@ namespace FindbookApi.Controllers
         /// <response code="200">Returns a book info</response>
         /// <response code="404">Book is not found</response>
         [HttpGet("{id}")]
-        public ActionResult Show(int id)
+        public async Task<ActionResult> Show(int id)
         {
-            Book book = booksService.Find(id);
+            Book book = await booksService.Find(id);
             if (book == null)
                 return NotFound();
             return Ok(book);
@@ -59,9 +59,9 @@ namespace FindbookApi.Controllers
         /// <response code="422">The item is not valid</response>
         [Authorize(Roles = "admin")]
         [HttpPost]
-        public ActionResult Create(BookEditModel model)
+        public async Task<ActionResult> Create(BookEditModel model)
         {
-            return Ok(booksService.Add(new Book(model)));
+            return Ok(await booksService.Add(new Book(model)));
         }
 
         /// <summary>
@@ -74,13 +74,13 @@ namespace FindbookApi.Controllers
         /// <response code="422">The item is not valid</response>
         [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
-        public ActionResult Update(int id, [FromBody] BookEditModel model)
+        public async Task<ActionResult> Update(int id, [FromBody] BookEditModel model)
         {
-            Book book = booksService.Find(id);
+            Book book = await booksService.Find(id);
             if (book == null)
                 return NotFound();
             book.Update(model);
-            return Ok(booksService.Update(book));
+            return Ok(await booksService.Update(book));
         }
 
         /// <summary>
@@ -92,9 +92,9 @@ namespace FindbookApi.Controllers
         /// <response code="404">Book is not found</response>
         [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
-        public ActionResult Remove(int id)
+        public async Task<ActionResult> Remove(int id)
         {
-            booksService.Remove(id);
+            await booksService.Remove(id);
             return Ok();
         }
 

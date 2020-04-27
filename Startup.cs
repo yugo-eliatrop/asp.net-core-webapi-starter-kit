@@ -94,8 +94,10 @@ namespace FindbookApi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Context context)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Context context, ILoggerFactory loggerFactory)
         {
+            loggerFactory.AddFile(Path.Combine(Directory.GetCurrentDirectory(), "FindbookApi.log"));
+
             if (env.IsProduction())
             {
                 context.Database.Migrate();
