@@ -1,24 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.IO;
-using System.Reflection;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using FindbookApi.Models;
 using FindbookApi.Services;
 using FindbookApi.Extensions;
 
@@ -36,57 +24,9 @@ namespace FindbookApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            
-            // Add service to connect with database context
-            string connection = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") ??
-                Configuration.GetConnectionString("DevelopmentConnection");
-            services.AddDbContext<Context>(options => options.UseNpgsql(connection));
-
-            services.AddIdentityCore<User>(options => {
-                options.User.RequireUniqueEmail = true;
-                options.Lockout.AllowedForNewUsers = true;
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-            })
-                .AddSignInManager<SignInManager<User>>()
-                .AddUserManager<UserManager<User>>()
-                .AddRoles<Role>()
-                .AddRoleManager<RoleManager<Role>>()
-                .AddEntityFrameworkStores<Context>();
-
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options => {
-                    options.RequireHttpsMetadata = false;
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidIssuer = JwtOptions.ISSUER,
-                        ValidateAudience = true,
-                        ValidAudience = JwtOptions.AUDIENCE,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = JwtOptions.GetSymmetricSecurityKey(),
-                        RoleClaimType = ClaimsIdentity.DefaultRoleClaimType
-                    };
-                });
-            
-            
-            services.AddAuthorization(options => {
-                options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
-                    .RequireAuthenticatedUser()
-                    .RequireRole("admin", "customer")
-                    .Build();
-            });
-
-            services.AddSwaggerGen(c => {
-                c.SwaggerDoc("v1", new OpenApiInfo {
-                    Version = "v1",
-                    Title = "FindBook API",
-                    Description = "FindBook project Api"
-                });
-                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                c.IncludeXmlComments(xmlPath);
-            });
+            services.AddPostgresql(Configuration);
+            services.ConfigureAuthServices();
+            services.ConfigureSwagger();
 
             services.AddTransient<IBooksService, BookService>();
             services.AddTransient<ITokensService, TokensService>();
@@ -104,9 +44,7 @@ namespace FindbookApi
             }
 
             app.UseExceptionMiddleware();
-
             app.UseSwagger();
-
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "FindBook V1");
@@ -115,7 +53,6 @@ namespace FindbookApi
             // app.UseHttpsRedirection();
 
             app.UseRouting();
-
             app.UseAuthentication();
             app.UseAuthorization();
 

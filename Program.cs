@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
 using FindbookApi.Models;
 using FindbookApi.Seeds;
+using FindbookApi.Services;
 
 namespace FindbookApi
 {
@@ -42,7 +43,13 @@ namespace FindbookApi
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.ConfigureKestrel(option => {
+                        option.ListenLocalhost(5000);
+                    });
                     webBuilder.UseStartup<Startup>();
+                })
+                .ConfigureServices(services => {
+                    services.AddHostedService<DbCleaningService>();
                 });
     }
 }
