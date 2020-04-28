@@ -4,7 +4,7 @@ namespace FindbookApi
 {
     public class FileLoggerProvider : ILoggerProvider
     {
-        private string path;
+        private readonly string path;
         
         public FileLoggerProvider(string path)
         {

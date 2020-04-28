@@ -6,8 +6,8 @@ namespace FindbookApi
 {
     public class FileLogger : ILogger
     {
-        private string path;
-        private static object _lock = new object();
+        private readonly string path;
+        private readonly static object _lock = new object();
 
         public FileLogger(string path)
         {

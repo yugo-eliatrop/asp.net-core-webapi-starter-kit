@@ -81,8 +81,9 @@ namespace FindbookApi.Controllers
             IList<string> roles = await userManager.GetRolesAsync(await userManager.FindByIdAsync(request.Id.ToString()));
             if (roles.Any(r => r == "admin"))
                 return Forbid();
-            int adminId = (await userManager.FindByEmailAsync(User.Identity.Name)).Id;
-            return Ok(new { lockoutEnd = await lockService.LockOut(user, request.Reason, request.Minutes, adminId) });
+            User admin = await userManager.FindByEmailAsync(User.Identity.Name);
+            logger.LogInformation($"Customers/LockOut: User {user.Email} has been blocked by admin {admin.Email}");
+            return Ok(new { lockoutEnd = await lockService.LockOut(user, request.Reason, request.Minutes, admin.Id) });
         }
     }
 }

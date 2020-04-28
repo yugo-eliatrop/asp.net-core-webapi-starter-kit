@@ -9,7 +9,7 @@ namespace FindbookApi.Services
 {
     public class BookService : IBooksService
     {
-        private Context dbContext;
+        private readonly Context dbContext;
 
         public BookService(Context context)
         {

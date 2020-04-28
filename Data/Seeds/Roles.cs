@@ -6,7 +6,7 @@ namespace FindbookApi.Seeds
 {
     public class RoleInitializer
     {
-        public static async Task InitializeAsync(UserManager<User> userManager, RoleManager<Role> roleManager)
+        public static async Task InitializeAsync(RoleManager<Role> roleManager)
         {
             // string adminEmail = "admin@example.com";
             // string password = "_Aa123456";

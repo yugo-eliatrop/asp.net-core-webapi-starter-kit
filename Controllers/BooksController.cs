@@ -16,12 +16,10 @@ namespace FindbookApi.Controllers
     [Route("Api/[controller]")]
     public class BooksController : ControllerBase
     {
-        private readonly ILogger<BooksController> logger;
-        private IBooksService booksService;
+        private readonly IBooksService booksService;
 
-        public BooksController(ILogger<BooksController> logger, IBooksService booksService)
+        public BooksController(IBooksService booksService)
         {
-            this.logger = logger;
             this.booksService = booksService;
         }
 
@@ -106,7 +104,7 @@ namespace FindbookApi.Controllers
         public ActionResult Statistic()
         {
             int count = booksService.Count();
-            return Ok(new { count = count });
+            return Ok(new { count });
         }
     }
 }

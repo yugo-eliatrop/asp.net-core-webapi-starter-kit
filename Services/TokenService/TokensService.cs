@@ -53,7 +53,7 @@ namespace FindbookApi.Services
 
         public string GetRefreshToken(User user)
         {
-            string key = GenerateKey(user);
+            string key = GenerateKey();
             db.RefreshTokens.Add(new RefreshToken(
                 user,
                 key,
@@ -63,14 +63,12 @@ namespace FindbookApi.Services
             return key;
         }
 
-        private string GenerateKey(User user)
+        private string GenerateKey()
         {
             var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                return Convert.ToBase64String(randomNumber);
-            }
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
         }
 
         public async Task<Tokens> RefreshTokens(Tokens tokens)
@@ -87,9 +85,7 @@ namespace FindbookApi.Services
             if (user.LockoutEnd > DateTime.UtcNow)
                 throw new RequestArgumentException("The user locked out", 400);
             IList<string> roles = await userManager.GetRolesAsync(user);
-            Tokens newTokens = new Tokens();
-            newTokens.AccessToken = GetAccessToken(user, roles);
-            newTokens.RefreshToken = GetRefreshToken(user);
+            Tokens newTokens = new Tokens() { AccessToken = GetAccessToken(user, roles), RefreshToken = GetRefreshToken(user) };
             return newTokens;
         }
 

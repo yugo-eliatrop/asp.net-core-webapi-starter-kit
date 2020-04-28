@@ -17,9 +17,9 @@ namespace FindbookApi.Controllers
     public class AccountController : ControllerBase
     {
         private readonly ILogger<AccountController> logger;
-        private UserManager<User> userManager { get; }
-        private SignInManager<User> signInManager { get; }
-        private ITokensService tokensService { get; }
+        private readonly UserManager<User> userManager;
+        private readonly SignInManager<User> signInManager;
+        private readonly ITokensService tokensService;
 
         public AccountController(ILogger<AccountController> logger, UserManager<User> userManager, SignInManager<User> signInManager,
             ITokensService tokensService)
@@ -71,6 +71,7 @@ namespace FindbookApi.Controllers
                 var result = await signInManager.CheckPasswordSignInAsync(user, userView.Password, true);
                 if (result.Succeeded)
                 {
+                    logger.LogInformation($"Account/SignIn: User {user.Email} successfully signed in");
                     IList<string> roles = await userManager.GetRolesAsync(user);
                     return Ok(new {
                         id = user.Id,
@@ -78,11 +79,14 @@ namespace FindbookApi.Controllers
                         email = user.Email,
                         accessToken = tokensService.GetAccessToken(user, roles),
                         refreshToken = tokensService.GetRefreshToken(user),
-                        roles = roles
+                        roles
                     });
                 }
                 else if (result.IsLockedOut)
+                {
+                    logger.LogInformation($"Account/SignIn: User {user.Email} has been blocked");
                     return Unauthorized(new { error = $"Account blocked: {user.ReasonOfLockOut}" });
+                }
             }
             return UnprocessableEntity(new { error = "Wrong email or password" });
         }

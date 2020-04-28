@@ -5,9 +5,9 @@ namespace FindbookApi.Services
 {
     public class BaseFilter<Entity> where Entity : class
     {
-        private int page;
-        private int itemsPerPage;
-        private Expression<Func<Entity, bool>> predicate;
+        private readonly int page;
+        private readonly int itemsPerPage;
+        private readonly Expression<Func<Entity, bool>> predicate;
         private const int ITEMS_PER_PAGE = 20;
 
         public BaseFilter(int page = 1, int itemsPerPage = ITEMS_PER_PAGE)
