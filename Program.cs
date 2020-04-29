@@ -28,9 +28,9 @@ namespace FindbookApi
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.ConfigureKestrel(option => {
-                        option.ListenLocalhost(5000);
-                    });
+                    // webBuilder.ConfigureKestrel(option => {
+                    //     option.ListenLocalhost(5000);
+                    // });
                     webBuilder.UseStartup<Startup>();
                 })
                 .ConfigureServices(services => {

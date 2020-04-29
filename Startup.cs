@@ -36,12 +36,13 @@ namespace FindbookApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Context context, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddFile(Path.Combine(Directory.GetCurrentDirectory(), "Logs/FindbookApi.log"));
-
             if (env.IsProduction())
             {
                 context.Database.Migrate();
+                loggerFactory.AddFile(Path.Combine(Directory.GetCurrentDirectory(), "Logs/Production.log"));
             }
+            else
+                loggerFactory.AddFile(Path.Combine(Directory.GetCurrentDirectory(), "Logs/Development.log"));
 
             app.UseExceptionMiddleware();
             app.UseSwagger();
@@ -50,7 +51,7 @@ namespace FindbookApi
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "FindBook V1");
             });
 
-            app.UseHttpsRedirection();
+            // app.UseHttpsRedirection();
 
             app.UseRouting();
             app.UseAuthentication();
