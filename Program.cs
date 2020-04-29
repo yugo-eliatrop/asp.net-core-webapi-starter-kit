@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
 using FindbookApi.Models;
 using FindbookApi.Seeds;
-using FindbookApi.Services;
+using FindbookApi.HostedServices;
 
 namespace FindbookApi
 {
@@ -19,23 +19,8 @@ namespace FindbookApi
         public static async Task Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
-            
             if (args.Any(x => x == "--seeds"))
-                using (var scope = host.Services.CreateScope())
-                {
-                    var services = scope.ServiceProvider;
-                    try
-                    {
-                        var rolesManager = services.GetRequiredService<RoleManager<Role>>();
-                        await RoleInitializer.InitializeAsync(rolesManager);
-                    }
-                    catch (Exception ex)
-                    {
-                        var logger = services.GetRequiredService<ILogger<Program>>();
-                        logger.LogError(ex, "An error occurred while seeding the database.");
-                    }
-                }
-
+                await SeedData(host);
             host.Run();
         }
 
@@ -51,5 +36,21 @@ namespace FindbookApi
                 .ConfigureServices(services => {
                     services.AddHostedService<DbCleaningService>();
                 });
+
+        public static async Task SeedData(IHost host)
+        {
+            using var scope = host.Services.CreateScope();
+            var services = scope.ServiceProvider;
+            try
+            {
+                var rolesManager = services.GetRequiredService<RoleManager<Role>>();
+                await RoleInitializer.InitializeAsync(rolesManager);
+            }
+            catch (Exception ex)
+            {
+                var logger = services.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, "An error occurred while seeding the database.");
+            }
+        }
     }
 }

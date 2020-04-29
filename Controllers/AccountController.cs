@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -43,9 +44,42 @@ namespace FindbookApi.Controllers
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(user, userView.Role);
+                string token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                string callbackUrl = Url.Action(
+                    "ConfirmEmail",
+                    "Account",
+                    new { userId = user.Id, token },
+                    protocol: HttpContext.Request.Scheme
+                );
+                try
+                {
+                    EmailService emailService = new EmailService();
+                    await emailService.SendEmailAsync(
+                        user.Email,
+                        "Email confirmation",
+                        $"<a href='{callbackUrl}'>Confirm your email</a>"
+                    );
+                }
+                catch (OperationCanceledException ex)
+                {
+                    logger.LogError(ex.Message);
+                }
+                logger.LogInformation($"Account/SignUp: {user.Email} confirmation link {callbackUrl}");
                 return Ok();
             }
             return UnprocessableEntity(result);
+        }
+
+        /// <summary>
+        /// Confirm email
+        /// </summary>
+        /// <response code="200">Return email confirmation status</response>
+        [HttpGet("[action]")]
+        public async Task<ActionResult> ConfirmEmail(string userId, string token)
+        {
+            User user = await userManager.FindByIdAsync(userId);
+            IdentityResult result = await userManager.ConfirmEmailAsync(user, token);
+            return Ok(new { succeeded = result.Succeeded });
         }
 
         /// <summary>
@@ -57,7 +91,7 @@ namespace FindbookApi.Controllers
         /// </remarks>
         /// <param name="userView"></param>
         /// <response code="200">Returns user info and JWT-token</response>
-        /// <response code="401">The account locked out. Returns reason of lock</response>
+        /// <response code="401">The account locked out or user email is not confirmed</response>
         /// <response code="422">Invalid email address or password</response>
         [HttpPost("[action]")]
         public async Task<ActionResult> SignIn(UserSignInModel userView)
@@ -69,7 +103,7 @@ namespace FindbookApi.Controllers
             if (user != null)
             {
                 var result = await signInManager.CheckPasswordSignInAsync(user, userView.Password, true);
-                if (result.Succeeded)
+                if (result.Succeeded && user.EmailConfirmed)
                 {
                     logger.LogInformation($"Account/SignIn: User {user.Email} successfully signed in");
                     IList<string> roles = await userManager.GetRolesAsync(user);
@@ -87,6 +121,8 @@ namespace FindbookApi.Controllers
                     logger.LogInformation($"Account/SignIn: User {user.Email} has been blocked");
                     return Unauthorized(new { error = $"Account blocked: {user.ReasonOfLockOut}" });
                 }
+                else
+                    return Unauthorized(new { error = "Email is not confirmed" });
             }
             return UnprocessableEntity(new { error = "Wrong email or password" });
         }

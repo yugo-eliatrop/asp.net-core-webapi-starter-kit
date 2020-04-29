@@ -41,7 +41,8 @@ namespace FindbookApi
                 .AddUserManager<UserManager<User>>()
                 .AddRoles<Role>()
                 .AddRoleManager<RoleManager<Role>>()
-                .AddEntityFrameworkStores<Context>();
+                .AddEntityFrameworkStores<Context>()
+                .AddDefaultTokenProviders();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options => {

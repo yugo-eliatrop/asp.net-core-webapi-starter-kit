@@ -7,7 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using FindbookApi.Models;
 
-namespace FindbookApi
+namespace FindbookApi.HostedServices
 {
     public class DbCleaningService : IHostedService, IDisposable
     {

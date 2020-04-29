@@ -50,7 +50,7 @@ namespace FindbookApi
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "FindBook V1");
             });
 
-            // app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
             app.UseRouting();
             app.UseAuthentication();
